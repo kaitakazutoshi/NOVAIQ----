@@ -43,6 +43,22 @@ python cli.py --template performance_A --no-dry-run   # 実際に下書き投稿
 
 生成物は `output/`（`article.json` / `preview.html` / `eyecatch.png`）に出力されます。
 
+## ConoHa / WordPress で認証が通らないとき
+
+Application Password でREST APIを使うには、サーバが `Authorization` ヘッダをPHPへ渡す必要があります。ConoHa（Apache＋CGI/FastCGI）では既定でカットされることがあり、その場合 `rest_not_logged_in`（401）になります。WordPress ルートの `.htaccess` の先頭付近に次を追記してください:
+
+```apache
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+</IfModule>
+# 上で不足する環境では下も併記
+SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
+```
+
+- 追記後も 401 が続く場合は、ConoHaコントロールパネルで **WAF を一時的にOFF** にして再確認してください（WAFがヘッダを除去している場合があります）。
+- 本ツールは WAF のパスルール対策として、REST を `?rest_route=/wp/v2/...` 形式で呼び出します（`/wp-json/...` が 403 になる環境向け）。
+
 ## 構成
 
 ```

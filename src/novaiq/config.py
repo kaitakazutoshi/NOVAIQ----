@@ -1,0 +1,56 @@
+"""Central configuration, loaded from environment variables (.env or Secrets)."""
+from __future__ import annotations
+
+import os
+from dataclasses import dataclass, field
+from pathlib import Path
+
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv()
+except Exception:  # dotenv is optional at runtime
+    pass
+
+# Project paths
+ROOT_DIR = Path(__file__).resolve().parents[2]
+DATA_DIR = ROOT_DIR / "data"
+OUTPUT_DIR = ROOT_DIR / "output"
+DATA_DIR.mkdir(exist_ok=True)
+OUTPUT_DIR.mkdir(exist_ok=True)
+
+DECORATIONS_PATH = DATA_DIR / "decorations.json"
+STATE_DB_PATH = DATA_DIR / "state.db"
+
+
+def _env(name: str, default: str = "") -> str:
+    return (os.environ.get(name) or default).strip()
+
+
+@dataclass
+class Settings:
+    """Runtime settings resolved from the environment."""
+
+    openai_api_key: str = field(default_factory=lambda: _env("OPENAI_API_KEY"))
+    text_model: str = field(default_factory=lambda: _env("NOVAIQ_TEXT_MODEL", "gpt-4o"))
+    image_model: str = field(default_factory=lambda: _env("NOVAIQ_IMAGE_MODEL", "gpt-image-1"))
+
+    wp_url: str = field(default_factory=lambda: _env("WP_URL").rstrip("/"))
+    wp_username: str = field(default_factory=lambda: _env("WP_USERNAME"))
+    wp_app_password: str = field(default_factory=lambda: _env("WP_APP_PASSWORD"))
+
+    openalex_mailto: str = field(default_factory=lambda: _env("OPENALEX_MAILTO"))
+    ncbi_api_key: str = field(default_factory=lambda: _env("NCBI_API_KEY"))
+
+    @property
+    def has_openai(self) -> bool:
+        return bool(self.openai_api_key)
+
+    @property
+    def has_wordpress(self) -> bool:
+        return bool(self.wp_url and self.wp_username and self.wp_app_password)
+
+
+def get_settings() -> Settings:
+    """Return a fresh Settings snapshot (re-reads the environment each call)."""
+    return Settings()

@@ -129,35 +129,60 @@ def run_once(
             result.ok = True
             return result
 
-        # Publish draft
-        from .publish import WordPressClient
+        # Publish draft — prefer the NOVAIQ Connector (custom-header auth) when
+        # configured, since it works on hosts that strip the Authorization header.
+        if settings.has_connector:
+            from .publish import ConnectorClient
 
-        _log("🌐 WordPress へ接続中…")
-        client = WordPressClient(settings)
-        me = client.check_connection()
-        _log(f"   認証OK: {me.get('name', '?')}")
+            _log("🌐 WordPress へ接続中…(NOVAIQ Connector)")
+            client = ConnectorClient(settings)
+            info = client.check_connection()
+            _log(f"   接続OK: {info.get('site', '?')} / admin={info.get('admin', '?')}")
+            _log("📝 下書き(draft)を作成中…（画像同梱）")
+            post = client.create_draft(
+                title=article.title,
+                content=post_html,
+                category_names=[template.genre_label],
+                tag_names=article.tags or None,
+                image_path=image_path,
+                slug=article.slug,
+                status="draft",
+            )
+            result.wp_post_id = post.get("id")
+            result.wp_edit_link = post.get("edit_link", "")
+        else:
+            from .publish import WordPressClient
 
-        featured = None
-        if image_path and image_path.exists():
-            _log("⬆  アイキャッチをアップロード中…")
-            featured = client.upload_media(image_path, title=article.title)
+            _log("🌐 WordPress へ接続中…(REST/Application Password)")
+            client = WordPressClient(settings)
+            me = client.check_connection()
+            _log(f"   認証OK: {me.get('name', '?')}")
 
-        _log("📝 下書き(draft)を作成中…")
-        post = client.create_draft(
-            title=article.title,
-            content=post_html,
-            category_names=[template.genre_label],
-            tag_names=article.tags or None,
-            featured_media=featured,
-            slug=article.slug,
-            status="draft",
+            featured = None
+            if image_path and image_path.exists():
+                _log("⬆  アイキャッチをアップロード中…")
+                featured = client.upload_media(image_path, title=article.title)
+
+            _log("📝 下書き(draft)を作成中…")
+            post = client.create_draft(
+                title=article.title,
+                content=post_html,
+                category_names=[template.genre_label],
+                tag_names=article.tags or None,
+                featured_media=featured,
+                slug=article.slug,
+                status="draft",
+            )
+            result.wp_post_id = post.get("id")
+            result.wp_edit_link = (
+                f"{settings.wp_url}/wp-admin/post.php?post={post.get('id')}&action=edit"
+            )
+
+        mark_posted(
+            paper.source, paper.source_id, paper.doi, article.title, result.wp_post_id, template_id
         )
-        result.wp_post_id = post.get("id")
-        edit = f"{settings.wp_url}/wp-admin/post.php?post={post.get('id')}&action=edit"
-        result.wp_edit_link = edit
-        mark_posted(paper.source, paper.source_id, paper.doi, article.title, post.get("id"), template_id)
-        _log(f"✅ 下書き作成完了: post_id={post.get('id')}")
-        _log(f"   編集URL: {edit}")
+        _log(f"✅ 下書き作成完了: post_id={result.wp_post_id}")
+        _log(f"   編集URL: {result.wp_edit_link}")
         result.ok = True
         return result
 

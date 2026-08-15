@@ -213,26 +213,39 @@ with tab_conn:
         return '<span class="badge-ok">● 設定済み</span>' if ok else '<span class="badge-no">● 未設定</span>'
 
     st.markdown(f"OpenAI APIキー: {_badge(settings.has_openai)}", unsafe_allow_html=True)
-    st.markdown(f"WordPress 認証情報: {_badge(settings.has_wordpress)}", unsafe_allow_html=True)
+    st.markdown(
+        f"NOVAIQ Connector（推奨）: {_badge(settings.has_connector)}", unsafe_allow_html=True
+    )
+    st.markdown(
+        f"WordPress Application Password: {_badge(settings.has_wordpress)}",
+        unsafe_allow_html=True,
+    )
     st.caption(
         f"テキストモデル: `{settings.text_model}` ／ 画像モデル: `{settings.image_model}`"
     )
     st.caption(
-        "キーは環境変数（Secrets / .env）で設定します: "
-        "`OPENAI_API_KEY`, `WP_URL`, `WP_USERNAME`, `WP_APP_PASSWORD`"
+        "Secrets: `OPENAI_API_KEY`, `WP_URL`, `NOVAIQ_API_KEY`（推奨）または "
+        "`WP_USERNAME`/`WP_APP_PASSWORD`"
     )
 
     if st.button("WordPress 接続テスト"):
-        if not settings.has_wordpress:
-            st.error("WordPressの認証情報が未設定です。")
-        else:
-            try:
+        try:
+            if settings.has_connector:
+                from novaiq.publish import ConnectorClient
+
+                info = ConnectorClient(settings).check_connection()
+                st.success(
+                    f"Connector 接続OK: {info.get('site', '?')} / admin={info.get('admin', '?')}"
+                )
+            elif settings.has_wordpress:
                 from novaiq.publish import WordPressClient
 
                 me = WordPressClient(settings).check_connection()
                 st.success(f"接続OK: {me.get('name', '?')}（id={me.get('id')}）")
-            except Exception as exc:
-                st.error(f"接続失敗: {exc}")
+            else:
+                st.error("接続情報が未設定です（NOVAIQ_API_KEY か WP_APP_PASSWORD）。")
+        except Exception as exc:
+            st.error(f"接続失敗: {exc}")
 
     st.divider()
     st.markdown("**ジャンル一覧（更新比率の土台）**")

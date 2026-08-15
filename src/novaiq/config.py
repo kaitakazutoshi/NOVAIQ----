@@ -39,6 +39,9 @@ class Settings:
     wp_username: str = field(default_factory=lambda: _env("WP_USERNAME"))
     wp_app_password: str = field(default_factory=lambda: _env("WP_APP_PASSWORD"))
 
+    # NOVAIQ Connector plugin (custom-header auth; bypasses Authorization stripping)
+    novaiq_api_key: str = field(default_factory=lambda: _env("NOVAIQ_API_KEY"))
+
     openalex_mailto: str = field(default_factory=lambda: _env("OPENALEX_MAILTO"))
     ncbi_api_key: str = field(default_factory=lambda: _env("NCBI_API_KEY"))
 
@@ -49,6 +52,10 @@ class Settings:
     @property
     def has_wordpress(self) -> bool:
         return bool(self.wp_url and self.wp_username and self.wp_app_password)
+
+    @property
+    def has_connector(self) -> bool:
+        return bool(self.wp_url and self.novaiq_api_key)
 
 
 def get_settings() -> Settings:

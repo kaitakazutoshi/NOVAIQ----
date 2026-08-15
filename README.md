@@ -43,7 +43,16 @@ python cli.py --template performance_A --no-dry-run   # 実際に下書き投稿
 
 生成物は `output/`（`article.json` / `preview.html` / `eyecatch.png`）に出力されます。
 
-## ConoHa / WordPress で認証が通らないとき
+## 推奨: NOVAIQ Connector（ConoHa WING 等で確実に投稿する）
+
+ConoHa WING などは前段の nginx/WAF が標準の `Authorization` ヘッダを落とすため、Application Password 認証（`/wp-json` Basic 認証）が `401 rest_not_logged_in` になることがあります。その場合は、`Authorization` に依存しない **NOVAIQ Connector**（独自ヘッダ `X-NOVAIQ-KEY` で認証）を使ってください。
+
+1. `wordpress/novaiq-connector.php` を WordPress の `wp-content/mu-plugins/` に配置（フォルダが無ければ作成）。mu-plugins は自動有効化されます。
+2. プラグイン内の `NOVAIQ_API_KEY`（`CHANGE_ME_TO_A_LONG_RANDOM_STRING`）を長いランダム文字列に変更。
+3. 同じ値を、ツール側の Secrets / `.env` の `NOVAIQ_API_KEY` に設定。
+4. `WP_URL` も設定。これで `NOVAIQ_API_KEY` があるときは自動的に Connector 経由（下書き作成・アイキャッチ同梱）で投稿します。
+
+## ConoHa / WordPress で認証が通らないとき（Application Password を使う場合）
 
 Application Password でREST APIを使うには、サーバが `Authorization` ヘッダをPHPへ渡す必要があります。ConoHa（Apache＋CGI/FastCGI）では既定でカットされることがあり、その場合 `rest_not_logged_in`（401）になります。WordPress ルートの `.htaccess` の先頭付近に次を追記してください:
 

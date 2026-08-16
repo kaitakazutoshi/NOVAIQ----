@@ -28,6 +28,15 @@ class ConnectorClient:
         # rest_route form avoids WAF path rules on pretty permalinks.
         return f"{self.site}/?rest_route=/novaiq/v1{path}"
 
+    def get_post(self, post_id: int) -> dict:
+        """Fetch a post's raw content (shortcodes intact) by id."""
+        r = requests.get(
+            self._url("/get"), headers=self.headers, params={"id": post_id}, timeout=30
+        )
+        if r.status_code >= 400:
+            raise WordPressError(f"connector get -> {r.status_code}: {r.text[:200]}")
+        return r.json()
+
     def check_connection(self) -> dict:
         r = requests.get(self._url("/ping"), headers=self.headers, timeout=30)
         if r.status_code >= 400:

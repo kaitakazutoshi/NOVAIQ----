@@ -32,7 +32,32 @@ add_action('rest_api_init', function () {
         'callback'            => 'novaiq_create_post',
         'permission_callback' => 'novaiq_check_key',
     ));
+    // Read a post's RAW content (shortcodes intact) by id — used to import
+    // existing AFFINGER decoration samples.
+    register_rest_route('novaiq/v1', '/get', array(
+        'methods'             => 'GET',
+        'callback'            => 'novaiq_get_post',
+        'permission_callback' => 'novaiq_check_key',
+    ));
 });
+
+function novaiq_get_post(WP_REST_Request $req) {
+    $id = (int) $req->get_param('id');
+    if (!$id) {
+        return new WP_Error('novaiq_bad_request', 'id required', array('status' => 400));
+    }
+    $post = get_post($id);
+    if (!$post) {
+        return new WP_Error('novaiq_not_found', 'post not found', array('status' => 404));
+    }
+    return array(
+        'ok'          => true,
+        'id'          => $post->ID,
+        'title'       => $post->post_title,
+        'status'      => $post->post_status,
+        'raw_content' => $post->post_content, // unfiltered: shortcodes preserved
+    );
+}
 
 function novaiq_get_key_header() {
     if (isset($_SERVER['HTTP_X_NOVAIQ_KEY'])) {

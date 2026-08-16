@@ -1,0 +1,14 @@
+[
+  {
+    "name": "下",
+    "code": "<u>{content}</u>",
+    "description": "重要語を下線に（例）",
+    "enabled": true
+  },
+  {
+    "name": "マーカー黄",
+    "code": "<span style=\"background:linear-gradient(transparent 60%,#fff3a0 0);\">{content}</span>",
+    "description": "黄色マーカー風",
+    "enabled": true
+  }
+]

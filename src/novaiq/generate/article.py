@@ -15,7 +15,11 @@ SYSTEM_PROMPT = """あなたは自己啓発×論文を専門とする日本語�
 - 事実は与えられた論文情報の範囲で書く。存在しない数値・引用・DOIを絶対に捏造しない。
 - コンディション（健康・睡眠・食事・サプリ）に触れる場合は薬機法・景表法に配慮し、効果を断定しない。
 - 誇大表現を避け、限界や注意も正直に書く。
-- 装飾（マーカーや囲みボックス等のショートコード）は使わない。プレーンな見出し・段落・箇条書きのみ。
+- ショートコードそのものは書かない。装飾したい箇所だけ次の印を付ける:
+  <span data-deco="名前">対象テキスト</span>
+  使える名前はユーザーメッセージの「使える装飾名」に列挙されたものだけ。
+- 使いすぎない。1セクションあたりマーカー2〜4箇所、囲み/ポイント/注意は記事全体で合計2〜4個まで。
+- 重要な結論や今日やることに黄マーカー、用語の初出に太字、注意・限界は「注意」、コツは「ポイント」。
 
 必ず次のJSON形式だけを出力する（前後に説明文やコードフェンスを付けない）:
 {
@@ -27,7 +31,7 @@ SYSTEM_PROMPT = """あなたは自己啓発×論文を専門とする日本語�
   "practice_time_min": 10,
   "evidence_confidence": "高 / 中 / 低 のいずれか＋一言理由",
   "sections": [
-    {"heading": "見出し", "html": "<p>本文HTML。使ってよいタグは p, ul, ol, li, strong, em, blockquote, h3 のみ</p>"}
+    {"heading": "見出し", "html": "<p>本文HTML。使ってよいタグは p, ul, ol, li, strong, em, blockquote, h3 と data-deco の span のみ</p>"}
   ],
   "today_action": "今日すぐできる1アクション",
   "limitations": "限界・注意（研究の限界や適用範囲）",
@@ -37,8 +41,13 @@ SYSTEM_PROMPT = """あなたは自己啓発×論文を専門とする日本語�
 """
 
 
-def _build_user_prompt(paper: Paper, template: Template) -> str:
+def _build_user_prompt(paper: Paper, template: Template, deco_names: list[str] | None) -> str:
     outline = "\n".join(f"- {h}" for h in template.outline)
+    if deco_names:
+        deco_list = "、".join(deco_names)
+        deco_block = f"\n# 使える装飾名（これ以外は使わない）\n{deco_list}\n"
+    else:
+        deco_block = "\n# 装飾\n今回は装飾印を付けない。プレーンなHTMLのみ。\n"
     return f"""# 記事テンプレート
 ジャンル: {template.genre_label}
 テンプレ: {template.name}
@@ -57,13 +66,20 @@ URL: {paper.url or "なし"}
 アブストラクト:
 {paper.abstract or "（アブストラクト取得不可。タイトルと一般知識の範囲で慎重に解説する）"}
 
+{deco_block}
 # 指示
 上記テンプレに沿って、必須項目をすべて含む記事をJSONで出力してください。
 related_links には少なくとも元論文へのリンク（上記URLまたはDOI）を含めること。
 """
 
 
-def generate_article(settings: Settings, paper: Paper, template: Template) -> Article:
+def generate_article(
+    settings: Settings,
+    paper: Paper,
+    template: Template,
+    *,
+    deco_names: list[str] | None = None,
+) -> Article:
     """Call the OpenAI API and return a validated Article."""
     from openai import OpenAI
 
@@ -72,7 +88,7 @@ def generate_article(settings: Settings, paper: Paper, template: Template) -> Ar
         model=settings.text_model,
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": _build_user_prompt(paper, template)},
+            {"role": "user", "content": _build_user_prompt(paper, template, deco_names)},
         ],
         response_format={"type": "json_object"},
         temperature=0.7,

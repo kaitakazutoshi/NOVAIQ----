@@ -14,6 +14,7 @@ from novaiq.decorate import (  # noqa: E402
     add_decoration,
     delete_decoration,
     load_decorations,
+    reset_to_defaults,
 )
 from novaiq.pipeline import run_once  # noqa: E402
 from novaiq.render import build_preview_page  # noqa: E402
@@ -95,11 +96,15 @@ with tab_run:
         )
         use_pubmed = st.checkbox("PubMedも併用（医学・生命科学に有効）", value=True)
         with_image = st.checkbox("アイキャッチ画像を生成", value=True)
+        apply_deco = st.checkbox(
+            "AFFINGER装飾を適用",
+            value=True,
+            help="登録済みの装飾コードを本文に埋め込みます",
+        )
         dry_run = st.checkbox(
             "dry-run（WordPressに投稿せず生成物だけ確認）", value=True,
             help="OFFにすると実際に下書き(draft)を投稿します",
         )
-        st.caption("装飾は現在OFF（Phase 1）。プレーンなHTMLで生成します。")
 
         start = st.button("🚀 スタート", use_container_width=True, type="primary")
 
@@ -122,7 +127,7 @@ with tab_run:
                 use_pubmed=use_pubmed,
                 dry_run=dry_run,
                 with_image=with_image,
-                apply_deco=False,
+                apply_deco=apply_deco,
                 log=_log,
             )
         st.session_state["last_result"] = res
@@ -173,10 +178,11 @@ with tab_run:
 with tab_deco:
     st.subheader("装飾コードの登録（AFFINGER等）")
     st.info(
-        "AFFINGERの装飾ショートコードを、名前とコードのセットで登録します。"
+        "AFFINGER の装飾を「名前＋コード」で登録します。"
         "コードには本文が入る位置に **`{content}`** を入れてください。\n\n"
-        "例: 名前=「マーカー」, コード=`[st-marker]{content}[/st-marker]`\n\n"
-        "※ 現在は装飾OFF（Phase 1）。ここで登録した内容は後で適用をONにしたときに使われます。",
+        "下書きID 14（パーツ確認用）からよく使うものを初期登録済みです。"
+        "全ショートコードのカタログは `data/affinger_catalog.json` に保存してあります。"
+        "よく使うものを後から教えてもらえれば、有効/無効を切り替えます。",
         icon="🎨",
     )
     with st.form("add_deco", clear_on_submit=True):
@@ -193,6 +199,9 @@ with tab_deco:
                 st.success(f"登録しました: {name}")
 
     st.markdown("#### 登録済みの装飾")
+    if st.button("AFFINGER初期セットに戻す"):
+        reset_to_defaults()
+        st.rerun()
     decos = load_decorations()
     if not decos:
         st.caption("まだ登録がありません。")

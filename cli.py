@@ -23,6 +23,7 @@ def main() -> int:
     ap.add_argument("--no-pubmed", action="store_true")
     ap.add_argument("--min-year", type=int, default=None)
     ap.add_argument("--no-image", action="store_true")
+    ap.add_argument("--no-deco", action="store_true", help="skip AFFINGER decorations")
     ap.add_argument("--dry-run", dest="dry_run", action="store_true", default=True)
     ap.add_argument("--no-dry-run", dest="dry_run", action="store_false")
     ap.add_argument("--list", action="store_true", help="list templates and exit")
@@ -40,6 +41,7 @@ def main() -> int:
         min_year=args.min_year,
         dry_run=args.dry_run,
         with_image=not args.no_image,
+        apply_deco=not args.no_deco,
         log=print,
     )
     print("\n--- RESULT ---")

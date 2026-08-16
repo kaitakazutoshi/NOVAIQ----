@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Callable, List, Optional
 
 from .config import OUTPUT_DIR, Settings, get_settings
-from .decorate import apply_decorations
+from .decorate import apply_decorations, load_decorations
 from .generate import generate_article, generate_eyecatch, mock_article
 from .models import Article, Paper
 from .render import build_post_html, build_preview_page
@@ -42,7 +42,7 @@ def run_once(
     min_year: int | None = None,
     dry_run: bool = True,
     with_image: bool = True,
-    apply_deco: bool = False,
+        apply_deco: bool = True,
     log: Logger | None = None,
 ) -> RunResult:
     settings = settings or get_settings()
@@ -87,16 +87,20 @@ def run_once(
         _log(f"📄 採用: {paper.title[:70]}… (被引用 {paper.cited_by_count}, {paper.source})")
 
         # Generate article
+        deco_names = [d.name for d in load_decorations() if d.enabled]
         if settings.has_openai:
             _log(f"✍  記事を生成中… (model={settings.text_model})")
-            article = generate_article(settings, paper, template)
+            article = generate_article(
+                settings, paper, template, deco_names=deco_names if apply_deco else None
+            )
         else:
             _log("✍  OPENAI_API_KEY 未設定 → モック記事を生成（構造確認用）")
             article = mock_article(paper, template)
         result.article = article
         _log(f"   タイトル: {article.title}")
 
-        # Decoration (off by default in Phase 1)
+        if apply_deco and deco_names:
+            _log(f"🎨 装飾を適用: {', '.join(deco_names[:8])}{'…' if len(deco_names) > 8 else ''}")
         for sec in article.sections:
             sec.html = apply_decorations(sec.html, enabled=apply_deco)
 

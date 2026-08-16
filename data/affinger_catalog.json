@@ -1,0 +1,229 @@
+{
+  "source": "WordPress draft id=14 (記事作成パーツ確認用ダミーページ Classic)",
+  "shortcodes": [
+    {
+      "name": "st-wide-background",
+      "opening_tag": "[st-wide-background myclass=\"\" backgroud_image=\"\" bgcolor=\"#FFF9C4\" align=\"\"]"
+    },
+    {
+      "name": "st-card",
+      "opening_tag": "[st-card id=2 label=\"\" name=\"\" bgcolor=\"\" color=\"\" readmore=\"on\"]"
+    },
+    {
+      "name": "st-cmemo",
+      "opening_tag": "[st-cmemo webicon=\"st-svg-file-text-o\" iconcolor=\"#919191\" bgcolor=\"#fafafa\" color=\"#000000\" iconsize=\"100\"]"
+    },
+    {
+      "name": "st-minihukidashi",
+      "opening_tag": "[st-minihukidashi bgcolor=\"#f3f3f3\" color=\"#000000\" margin=\"0 0 20px 0\"]"
+    },
+    {
+      "name": "st-mybox",
+      "opening_tag": "[st-mybox title=\"\" webicon=\"\" color=\"#757575\" bordercolor=\"\" bgcolor=\"#FFFDE7\" borderwidth=\"0\" borderradius=\"5\" titleweight=\"bold\" fontsize=\"\"]"
+    },
+    {
+      "name": "st-marumozi",
+      "opening_tag": "[st-marumozi webicon=\"\" bgcolor=\"#f3f3f3\" color=\"#000000\" radius=\"30\" margin=\"0 10px 10px 0\"]"
+    },
+    {
+      "name": "st-marumozi-big",
+      "opening_tag": "[st-marumozi-big webicon=\"\" bgcolor=\"#f3f3f3\" color=\"#000000\" radius=\"30\" margin=\"0 10px 10px 0\"]"
+    },
+    {
+      "name": "st-designfont",
+      "opening_tag": "[st-designfont myclass=\"\" webicon=\"\" fontsize=\"150\" fontweight=\"bold\" color=\"#000\" textshadow=\"\" webfont=\"\" margin=\"0 0 20px 0\"]"
+    },
+    {
+      "name": "st-step",
+      "opening_tag": "[st-step step_no=\"1\"]"
+    },
+    {
+      "name": "st-point",
+      "opening_tag": "[st-point fontsize=\"\" fontweight=\"bold\" bordercolor=\"\"]"
+    },
+    {
+      "name": "st-label",
+      "opening_tag": "[st-label label=\"おすすめ\" bgcolor=\"#FBC02D\" color=\"#FFFFFF\"]"
+    },
+    {
+      "name": "st-flexbox",
+      "opening_tag": "[st-flexbox url=\"\" webicon=\"\" title=\"タイトル\" width=\"\" height=\"\" color=\"#fff\" fontsize=\"200\" radius=\"0\" shadow=\"#424242\" bordercolor=\"#ccc\" borderwidth=\"1\" bgcolor=\"#ccc\" backgroud_image=\"\" blur=\"on\" left=\"\" margin_bottom=\"10\"]"
+    },
+    {
+      "name": "st-mybutton",
+      "opening_tag": "[st-mybutton url=\"#\" title=\"今すぐCHECK\" rel=\"\" webicon=\"\" target=\"\" color=\"#fff\" bgcolor=\"#FFD54F\" bgcolor_top=\"#ffdb69\" bordercolor=\"#FFEB3B\" borderwidth=\"1\" borderradius=\"5\" fontsize=\"90\" fontweight=\"bold\" width=\"80\" fontawesome_after=\"st-svg-angle-right\" shadow=\"#FFB300\" ref=\"on\"]"
+    },
+    {
+      "name": "st-midasibox",
+      "opening_tag": "[st-midasibox title=\"見出し（全角15文字）\" webicon=\"\" bordercolor=\"\" color=\"\" bgcolor=\"\" borderwidth=\"\" borderradius=\"\" titleweight=\"bold\"]"
+    },
+    {
+      "name": "st-midasibox-intitle",
+      "opening_tag": "[st-midasibox-intitle title=\"見出し（全角15文字）\" webicon=\"\" bordercolor=\"\" color=\"\" bgcolor=\"\" borderwidth=\"\" borderradius=\"\" titleweight=\"bold\"]"
+    },
+    {
+      "name": "st-slidebox",
+      "opening_tag": "[st-slidebox text=\"+ クリックして下さい\" bgcolor=\"\" color=\"#1a1a1a\" margin_bottom=\"20\"]"
+    },
+    {
+      "name": "st-square-checkbox",
+      "opening_tag": "[st-square-checkbox bgcolor=\"\" bordercolor=\"\" fontweight=\"\" borderwidth=\"3\"]"
+    },
+    {
+      "name": "v",
+      "opening_tag": "[v]"
+    },
+    {
+      "name": "st-mybutton-mini",
+      "opening_tag": "[st-mybutton-mini url=\"#\" title=\"ボタン\" rel=\"\" webicon=\"\" target=\"\" color=\"#000000\" bgcolor=\"#f3f3f3\" bgcolor_top=\"\" borderradius=\"3\" fontsize=\"\" fontweight=\"\" fontawesome_after=\"\" shadow=\"#BDBDBD\" ref=\"\"]"
+    },
+    {
+      "name": "st-mcbutton",
+      "opening_tag": "[st-mcbutton url=\"#\" title=\"今すぐ申し込む\" rel=\"\" webicon=\"\" target=\"\" color=\"#fff\" bgcolor=\"#e53935\" bgcolor_top=\"#f44336\" bordercolor=\"#e57373\" borderwidth=\"1\" borderradius=\"5\" fontweight=\"bold\" fontsize=\"120\" width=\"90\" fontawesome_after=\"st-svg-chevron-right\" shadow=\"#c62828\" ref=\"on\" mcbox_bg=\"#fafafa\" mcbox_color=\"\" mcbox_title=\"太字のテキスト\"]"
+    },
+    {
+      "name": "st-kaiwa1",
+      "opening_tag": "[st-kaiwa1]"
+    },
+    {
+      "name": "st-kaiwa2",
+      "opening_tag": "[st-kaiwa2 r]"
+    },
+    {
+      "name": "st-kaiwa3",
+      "opening_tag": "[st-kaiwa3]"
+    },
+    {
+      "name": "st-kaiwa4",
+      "opening_tag": "[st-kaiwa4 r]"
+    },
+    {
+      "name": "st-kaiwa5",
+      "opening_tag": "[st-kaiwa5]"
+    },
+    {
+      "name": "st-kaiwa6",
+      "opening_tag": "[st-kaiwa6 r]"
+    },
+    {
+      "name": "st-kaiwa7",
+      "opening_tag": "[st-kaiwa7]"
+    },
+    {
+      "name": "st-kaiwa8",
+      "opening_tag": "[st-kaiwa8 r]"
+    },
+    {
+      "name": "st-rank",
+      "opening_tag": "[st-rank rankno=\"1\" bgcolor=\"\" color=\"#000\" bordercolor=\"#ccc\" radius=\"\" star=\"5\"]"
+    },
+    {
+      "name": "st-tab-content",
+      "opening_tag": "[st-tab-content memo=\"全体を包むボックスです\"]"
+    },
+    {
+      "name": "st-input-tab",
+      "opening_tag": "[st-input-tab text=\"タブ1\" bgcolor=\"#fff\" color=\"#1a1a1a\" fontweight=\"\" width=\"45\" value=\"1\" checked=\"checked\"]"
+    },
+    {
+      "name": "st-tab-main",
+      "opening_tag": "[st-tab-main bgcolor=\"\" bordercolor=\"\" value=\"1\"]"
+    },
+    {
+      "name": "star5",
+      "opening_tag": "[star5]"
+    },
+    {
+      "name": "star45",
+      "opening_tag": "[star45]"
+    },
+    {
+      "name": "star4",
+      "opening_tag": "[star4]"
+    },
+    {
+      "name": "star35",
+      "opening_tag": "[star35]"
+    },
+    {
+      "name": "star3",
+      "opening_tag": "[star3]"
+    },
+    {
+      "name": "star2",
+      "opening_tag": "[star2]"
+    },
+    {
+      "name": "star1",
+      "opening_tag": "[star1]"
+    },
+    {
+      "name": "st-date",
+      "opening_tag": "[st-date]"
+    },
+    {
+      "name": "st-user-comment-box",
+      "opening_tag": "[st-user-comment-box title=\"タイトル\" user_text=\"◯代男性\" color=\"\" star=\"5\"]"
+    },
+    {
+      "name": "youtube",
+      "opening_tag": "[youtube id=2MNL2mU8pBE]"
+    },
+    {
+      "name": "st-under-t",
+      "opening_tag": "[st-under-t color=\"#000\"]"
+    },
+    {
+      "name": "st-catgroup",
+      "opening_tag": "[st-catgroup html_class=\"\" cat=\"0\" page=\"5\" order=\"desc\" orderby=\"id\" child=\"on\" type=\"\" slide=\"off\" slides_to_show=\"3,3,2\" slide_date=\"off\" slide_more=\"ReadMore\" slide_center=\"off\" fullsize_type=\"\" load_more=\"off\"]"
+    }
+  ],
+  "span_classes": [
+    "huto",
+    "hutoaka",
+    "oomozi",
+    "dotline",
+    "sankou",
+    "st-hisu",
+    "st-wrench animated st-animate",
+    "st-ring animated st-animate",
+    "st-horizontal animated st-animate",
+    "st-vertical animated st-animate",
+    "st-bounce animated st-animate",
+    "st-float animated st-animate",
+    "st-pulse animated st-animate",
+    "st-shake-s animated st-animate",
+    "st-shake st-animate",
+    "st-tada animated st-animate",
+    "st-passing animated st-animate",
+    "st-passing-reverse animated st-animate",
+    "st-burst animated st-animate",
+    "st-falling animated st-animate",
+    "hatenamark2 on-color",
+    "attentionmark2 on-color",
+    "usermark2 on-color",
+    "checkmark2 on-color",
+    "memomark2 on-color",
+    "oukanmark on-color",
+    "bigginermark on-color",
+    "st-h-copy",
+    "st-count",
+    "ymarker",
+    "ymarker-s",
+    "rmarker",
+    "rmarker-s",
+    "bmarker",
+    "bmarker-s",
+    "gmarker",
+    "gmarker-s",
+    "st-blackboard-title"
+  ],
+  "p_classes": [
+    "komozi",
+    "st-share",
+    "st-flash animated st-animate",
+    "st-rotation animated st-animate",
+    "st-memobox-title",
+    "st-blackboard-title-box"
+  ]
+}

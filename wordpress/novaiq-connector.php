@@ -84,34 +84,58 @@ function novaiq_resolve_category_ids($names) {
 }
 
 function novaiq_attach_featured_image($post_id, $fname, $b64, &$warnings) {
-    $bytes = base64_decode($b64);
-    if ($bytes === false) {
-        $warnings[] = 'image base64 decode failed';
-        return;
-    }
-    require_once ABSPATH . 'wp-admin/includes/file.php';
-    require_once ABSPATH . 'wp-admin/includes/media.php';
-    require_once ABSPATH . 'wp-admin/includes/image.php';
+    try {
+        $bytes = base64_decode($b64);
+        if ($bytes === false) {
+            $warnings[] = 'image base64 decode failed';
+            return;
+        }
 
-    $upload = wp_upload_bits($fname, null, $bytes);
-    if (!empty($upload['error'])) {
-        $warnings[] = 'upload: ' . $upload['error'];
-        return;
+        $upload = wp_upload_bits($fname, null, $bytes);
+        if (!empty($upload['error'])) {
+            $warnings[] = 'upload: ' . $upload['error'];
+            return;
+        }
+
+        $filetype  = wp_check_filetype($upload['file']);
+        $mime      = !empty($filetype['type']) ? $filetype['type'] : 'image/png';
+        $attach_id = wp_insert_attachment(array(
+            'post_mime_type' => $mime,
+            'post_title'     => sanitize_file_name(pathinfo($fname, PATHINFO_FILENAME)),
+            'post_content'   => '',
+            'post_status'    => 'inherit',
+        ), $upload['file'], $post_id);
+        if (is_wp_error($attach_id)) {
+            $warnings[] = 'attachment: ' . $attach_id->get_error_message();
+            return;
+        }
+
+        // Set the featured image first — this does not require metadata/GD.
+        set_post_thumbnail($post_id, $attach_id);
+
+        // Best-effort metadata (thumbnails). Never let this abort the request.
+        try {
+            require_once ABSPATH . 'wp-admin/includes/image.php';
+            if (function_exists('wp_generate_attachment_metadata')) {
+                $meta = wp_generate_attachment_metadata($attach_id, $upload['file']);
+                if (!empty($meta)) {
+                    wp_update_attachment_metadata($attach_id, $meta);
+                }
+            }
+        } catch (\Throwable $e) {
+            $warnings[] = 'metadata: ' . $e->getMessage();
+            $size = @getimagesize($upload['file']);
+            if ($size) {
+                wp_update_attachment_metadata($attach_id, array(
+                    'width'  => $size[0],
+                    'height' => $size[1],
+                    'file'   => $upload['file'],
+                ));
+            }
+        }
+    } catch (\Throwable $e) {
+        $warnings[] = 'image: ' . $e->getMessage();
     }
-    $filetype  = wp_check_filetype($upload['file']);
-    $attach_id = wp_insert_attachment(array(
-        'post_mime_type' => $filetype['type'],
-        'post_title'     => sanitize_file_name(pathinfo($fname, PATHINFO_FILENAME)),
-        'post_content'   => '',
-        'post_status'    => 'inherit',
-    ), $upload['file'], $post_id);
-    if (is_wp_error($attach_id)) {
-        $warnings[] = 'attachment: ' . $attach_id->get_error_message();
-        return;
-    }
-    $meta = wp_generate_attachment_metadata($attach_id, $upload['file']);
-    wp_update_attachment_metadata($attach_id, $meta);
-    set_post_thumbnail($post_id, $attach_id);
 }
 
 function novaiq_create_post(WP_REST_Request $req) {

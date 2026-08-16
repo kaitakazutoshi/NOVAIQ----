@@ -64,89 +64,118 @@ function novaiq_ping() {
     );
 }
 
+// REST-safe category resolver (wp_create_category/get_cat_ID are wp-admin only).
+function novaiq_resolve_category_ids($names) {
+    $ids = array();
+    foreach ((array) $names as $cname) {
+        $cname = sanitize_text_field($cname);
+        if ($cname === '') {
+            continue;
+        }
+        $term = term_exists($cname, 'category');
+        if (!$term) {
+            $term = wp_insert_term($cname, 'category');
+        }
+        if (!is_wp_error($term) && isset($term['term_id'])) {
+            $ids[] = (int) $term['term_id'];
+        }
+    }
+    return $ids;
+}
+
+function novaiq_attach_featured_image($post_id, $fname, $b64, &$warnings) {
+    $bytes = base64_decode($b64);
+    if ($bytes === false) {
+        $warnings[] = 'image base64 decode failed';
+        return;
+    }
+    require_once ABSPATH . 'wp-admin/includes/file.php';
+    require_once ABSPATH . 'wp-admin/includes/media.php';
+    require_once ABSPATH . 'wp-admin/includes/image.php';
+
+    $upload = wp_upload_bits($fname, null, $bytes);
+    if (!empty($upload['error'])) {
+        $warnings[] = 'upload: ' . $upload['error'];
+        return;
+    }
+    $filetype  = wp_check_filetype($upload['file']);
+    $attach_id = wp_insert_attachment(array(
+        'post_mime_type' => $filetype['type'],
+        'post_title'     => sanitize_file_name(pathinfo($fname, PATHINFO_FILENAME)),
+        'post_content'   => '',
+        'post_status'    => 'inherit',
+    ), $upload['file'], $post_id);
+    if (is_wp_error($attach_id)) {
+        $warnings[] = 'attachment: ' . $attach_id->get_error_message();
+        return;
+    }
+    $meta = wp_generate_attachment_metadata($attach_id, $upload['file']);
+    wp_update_attachment_metadata($attach_id, $meta);
+    set_post_thumbnail($post_id, $attach_id);
+}
+
 function novaiq_create_post(WP_REST_Request $req) {
-    $p = $req->get_json_params();
-    if (!$p) {
-        $p = $req->get_params();
-    }
+    try {
+        $p = $req->get_json_params();
+        if (!$p) {
+            $p = $req->get_params();
+        }
 
-    $title   = isset($p['title']) ? wp_strip_all_tags($p['title']) : '';
-    $content = isset($p['content']) ? $p['content'] : '';
-    $slug    = isset($p['slug']) ? sanitize_title($p['slug']) : '';
-    $status  = isset($p['status']) ? $p['status'] : 'draft';
-    $allowed = array('draft', 'pending', 'publish', 'future');
-    if (!in_array($status, $allowed, true)) {
-        $status = 'draft';
-    }
+        $title   = isset($p['title']) ? wp_strip_all_tags($p['title']) : '';
+        $content = isset($p['content']) ? $p['content'] : '';
+        $slug    = isset($p['slug']) ? sanitize_title($p['slug']) : '';
+        $status  = isset($p['status']) ? $p['status'] : 'draft';
+        $allowed = array('draft', 'pending', 'publish', 'future');
+        if (!in_array($status, $allowed, true)) {
+            $status = 'draft';
+        }
 
-    if ($title === '' || $content === '') {
-        return new WP_Error('novaiq_bad_request', 'title and content are required', array('status' => 400));
-    }
+        if ($title === '' || $content === '') {
+            return new WP_Error('novaiq_bad_request', 'title and content are required', array('status' => 400));
+        }
 
-    $postarr = array(
-        'post_title'   => $title,
-        'post_content' => wp_kses_post($content),
-        'post_status'  => $status,
-        'post_type'    => 'post',
-        'post_author'  => novaiq_admin_id(),
-    );
-    if ($slug) {
-        $postarr['post_name'] = $slug;
-    }
-
-    if (!empty($p['categories']) && is_array($p['categories'])) {
-        $cat_ids = array();
-        foreach ($p['categories'] as $cname) {
-            $cname = sanitize_text_field($cname);
-            $cid = get_cat_ID($cname);
-            if (!$cid) {
-                $cid = wp_create_category($cname);
-            }
-            if ($cid) {
-                $cat_ids[] = (int) $cid;
+        $postarr = array(
+            'post_title'   => $title,
+            'post_content' => wp_kses_post($content),
+            'post_status'  => $status,
+            'post_type'    => 'post',
+            'post_author'  => novaiq_admin_id(),
+        );
+        if ($slug) {
+            $postarr['post_name'] = $slug;
+        }
+        if (!empty($p['categories']) && is_array($p['categories'])) {
+            $cat_ids = novaiq_resolve_category_ids($p['categories']);
+            if ($cat_ids) {
+                $postarr['post_category'] = $cat_ids;
             }
         }
-        if ($cat_ids) {
-            $postarr['post_category'] = $cat_ids;
+
+        $post_id = wp_insert_post($postarr, true);
+        if (is_wp_error($post_id)) {
+            return new WP_Error('novaiq_insert_failed', $post_id->get_error_message(), array('status' => 500));
         }
-    }
 
-    $post_id = wp_insert_post($postarr, true);
-    if (is_wp_error($post_id)) {
-        return new WP_Error('novaiq_insert_failed', $post_id->get_error_message(), array('status' => 500));
-    }
+        $warnings = array();
 
-    if (!empty($p['tags']) && is_array($p['tags'])) {
-        wp_set_post_tags($post_id, array_map('sanitize_text_field', $p['tags']), false);
-    }
-
-    if (!empty($p['image_base64'])) {
-        $fname = !empty($p['image_filename']) ? sanitize_file_name($p['image_filename']) : 'eyecatch.png';
-        $bytes = base64_decode($p['image_base64']);
-        if ($bytes !== false) {
-            $upload = wp_upload_bits($fname, null, $bytes);
-            if (empty($upload['error'])) {
-                require_once ABSPATH . 'wp-admin/includes/image.php';
-                $filetype  = wp_check_filetype($upload['file']);
-                $attach_id = wp_insert_attachment(array(
-                    'post_mime_type' => $filetype['type'],
-                    'post_title'     => sanitize_file_name(pathinfo($fname, PATHINFO_FILENAME)),
-                    'post_content'   => '',
-                    'post_status'    => 'inherit',
-                ), $upload['file'], $post_id);
-                if (!is_wp_error($attach_id)) {
-                    $meta = wp_generate_attachment_metadata($attach_id, $upload['file']);
-                    wp_update_attachment_metadata($attach_id, $meta);
-                    set_post_thumbnail($post_id, $attach_id);
-                }
-            }
+        if (!empty($p['tags']) && is_array($p['tags'])) {
+            wp_set_post_tags($post_id, array_map('sanitize_text_field', $p['tags']), false);
         }
-    }
 
-    return array(
-        'ok'        => true,
-        'id'        => $post_id,
-        'status'    => $status,
-        'edit_link' => admin_url('post.php?post=' . $post_id . '&action=edit'),
-    );
+        if (!empty($p['image_base64'])) {
+            $fname = !empty($p['image_filename']) ? sanitize_file_name($p['image_filename']) : 'eyecatch.png';
+            novaiq_attach_featured_image($post_id, $fname, $p['image_base64'], $warnings);
+        }
+
+        return array(
+            'ok'        => true,
+            'id'        => $post_id,
+            'status'    => $status,
+            'edit_link' => admin_url('post.php?post=' . $post_id . '&action=edit'),
+            'warnings'  => $warnings,
+        );
+    } catch (\Throwable $e) {
+        // Surface the real error instead of a generic 500 page (aids debugging).
+        return new WP_Error('novaiq_exception', $e->getMessage(), array('status' => 500));
+    }
 }

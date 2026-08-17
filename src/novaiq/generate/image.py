@@ -56,7 +56,11 @@ def generate_eyecatch(
         "deep indigo and violet palette, subtle glow, no text, no words."
     )
     result = client.images.generate(
-        model=settings.image_model, prompt=prompt, size="1536x1024", n=1
+        model=settings.image_model,
+        prompt=prompt,
+        size=settings.image_size,
+        quality=settings.image_quality,
+        n=1,
     )
     b64 = result.data[0].b64_json
     out_path.write_bytes(base64.b64decode(b64))

@@ -230,7 +230,8 @@ with tab_conn:
         unsafe_allow_html=True,
     )
     st.caption(
-        f"テキストモデル: `{settings.text_model}` ／ 画像モデル: `{settings.image_model}`"
+        f"テキストモデル: `{settings.text_model}` ／ 画像モデル: `{settings.image_model}` "
+        f"（{settings.image_size}, quality={settings.image_quality}）"
     )
     st.caption(
         "Secrets: `OPENAI_API_KEY`, `WP_URL`, `NOVAIQ_API_KEY`（推奨）または "

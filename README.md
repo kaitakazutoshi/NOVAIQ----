@@ -19,7 +19,8 @@ pip install -r requirements.txt
 
 - `OPENAI_API_KEY` … 記事・画像生成に必要
 - `WP_URL` / `WP_USERNAME` / `WP_APP_PASSWORD` … 下書き投稿に必要（アプリケーションパスワード）
-- `NOVAIQ_TEXT_MODEL`（既定 `gpt-4o`）/ `NOVAIQ_IMAGE_MODEL`（既定 `gpt-image-1`）… いつでも変更可
+- `NOVAIQ_TEXT_MODEL`（既定 `gpt-5.6-luna`）/ `NOVAIQ_IMAGE_MODEL`（既定 `gpt-image-2`）… いつでも変更可
+- 画像はコスパ優先: `NOVAIQ_IMAGE_SIZE=1024x1024` / `NOVAIQ_IMAGE_QUALITY=low`
 
 ## 使い方
 

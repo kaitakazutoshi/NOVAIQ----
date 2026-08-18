@@ -26,6 +26,8 @@ def main() -> int:
     ap.add_argument("--no-deco", action="store_true", help="skip AFFINGER decorations")
     ap.add_argument("--dry-run", dest="dry_run", action="store_true", default=True)
     ap.add_argument("--no-dry-run", dest="dry_run", action="store_false")
+    ap.add_argument("--query", default=None, help="override paper search query")
+    ap.add_argument("--max-papers", type=int, default=3)
     ap.add_argument("--list", action="store_true", help="list templates and exit")
     args = ap.parse_args()
 
@@ -42,6 +44,8 @@ def main() -> int:
         dry_run=args.dry_run,
         with_image=not args.no_image,
         apply_deco=not args.no_deco,
+        search_query=args.query,
+        max_papers=args.max_papers,
         log=print,
     )
     print("\n--- RESULT ---")

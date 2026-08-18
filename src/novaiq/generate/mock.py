@@ -26,7 +26,7 @@ def mock_article(paper: Paper, template: Template) -> Article:
         ],
         reading_time_min=5,
         practice_time_min=10,
-        evidence_confidence="中（査読論文だが本文はモック生成のため参考）",
+        evidence_confidence="中",
         sections=[
             Section(
                 heading="",

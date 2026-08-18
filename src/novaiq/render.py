@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import html as _html
-from typing import Optional
+from typing import List, Optional, Sequence
 from urllib.parse import urlparse
 
 from .models import Article, Paper
@@ -33,24 +33,35 @@ def source_url(paper: Paper) -> str:
     return ""
 
 
-def build_post_html(article: Article, paper: Paper, *, image_url: Optional[str] = None) -> str:
-    """Build post body HTML. Citation sits last, small and unobtrusive."""
+def build_post_html(
+    article: Article,
+    paper: Paper | None = None,
+    *,
+    papers: Sequence[Paper] | None = None,
+    image_url: Optional[str] = None,
+) -> str:
+    """Build post body HTML. Citations sit last, small and unobtrusive."""
+    items: List[Paper] = list(papers) if papers else ([paper] if paper else [])
     parts: list[str] = []
 
-    learn = "".join(f"<li>{_esc(x)}</li>" for x in article.what_you_learn)
+    learn_items = [x for x in article.what_you_learn if str(x).strip()]
+    if len(learn_items) <= 1:
+        learn_body = f"<p style=\"margin:0;\">{_esc(learn_items[0]) if learn_items else ''}</p>"
+    else:
+        learn_body = "<ul>" + "".join(f"<li>{_esc(x)}</li>" for x in learn_items) + "</ul>"
     parts.append(
         '<div class="novaiq-summary" '
         'style="border:1px solid #d0d0e0;border-radius:12px;padding:16px 20px;margin:0 0 24px;">'
         "<p style=\"margin:0 0 8px;\"><strong>この記事でわかること</strong></p>"
-        f"<ul>{learn}</ul>"
+        f"{learn_body}"
         f"<p style=\"margin:8px 0 0;font-size:0.9em;color:#555;\">"
-        f"⏱ 読了 約{article.reading_time_min}分 ／ 🛠 実践 約{article.practice_time_min}分 ／ "
+        f"⏱ 読了 約{article.reading_time_min}分 ／ "
         f"🔬 根拠の信頼度: {_esc(article.evidence_confidence)}</p>"
         "</div>"
     )
 
     if article.lead:
-        parts.append(f"<p>{_esc(article.lead)}</p>")
+        parts.append(f"<p>{article.lead}</p>")
 
     for sec in article.sections:
         if sec.heading.strip():
@@ -72,24 +83,36 @@ def build_post_html(article: Article, paper: Paper, *, image_url: Optional[str] 
             f"※ {_esc(article.limitations)}</p>"
         )
 
-    site = source_site_name(paper)
-    url = source_url(paper)
-    cite = (
-        '<p class="novaiq-cite" style="font-size:0.75em;color:#999;margin-top:32px;'
-        'border-top:1px solid #eee;padding-top:12px;">'
-        f"出典: {_esc(site)}"
-    )
-    if url:
-        cite += f' · <a href="{_esc(url)}" target="_blank" rel="noopener" style="color:#999;">{_esc(url)}</a>'
-    cite += "</p>"
-    parts.append(cite)
+    cite_bits = []
+    for p in items:
+        site = source_site_name(p)
+        url = source_url(p)
+        bit = _esc(site)
+        if url:
+            bit += (
+                f' · <a href="{_esc(url)}" target="_blank" rel="noopener" '
+                f'style="color:#999;">{_esc(url)}</a>'
+            )
+        cite_bits.append(bit)
+    if cite_bits:
+        parts.append(
+            '<p class="novaiq-cite" style="font-size:0.75em;color:#999;margin-top:32px;'
+            'border-top:1px solid #eee;padding-top:12px;">'
+            "出典: " + "<br>".join(cite_bits) + "</p>"
+        )
 
     return "\n".join(parts)
 
 
-def build_preview_page(article: Article, paper: Paper, *, image_rel: Optional[str] = None) -> str:
+def build_preview_page(
+    article: Article,
+    paper: Paper | None = None,
+    *,
+    papers: Sequence[Paper] | None = None,
+    image_rel: Optional[str] = None,
+) -> str:
     """Standalone dark-themed HTML page for local preview."""
-    body = build_post_html(article, paper)
+    body = build_post_html(article, paper, papers=papers)
     img_tag = (
         f'<img src="{_esc(image_rel)}" alt="eyecatch" '
         'style="width:100%;border-radius:16px;margin:0 0 24px;">'

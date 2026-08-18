@@ -20,7 +20,7 @@ def wants_text_on_image(article: Article) -> bool:
 def text_for_image(article: Article) -> str:
     if not wants_text_on_image(article):
         return ""
-    return ((article.eyecatch_text or "").strip() or article.title)[:18]
+    return ((article.eyecatch_text or "").strip() or article.title)
 
 
 def _placeholder_png(path: Path, title: str, line: str = "") -> Path:
@@ -63,11 +63,11 @@ def build_eyecatch_prompt(article: Article, paper: Paper | None, *, with_text: b
     """Keep prompts short. Visual must match the paper; text style is a fixed template."""
     hint = _visual_hint(article, paper)
     if with_text:
-        line = ((article.eyecatch_text or "").strip() or article.title)[:18]
+        line = (article.eyecatch_text or "").strip() or article.title
         return (
             f"Simple uncluttered background, one color or soft gradient. "
             f"Quiet scene related to: {hint}. "
-            f"Huge extra-bold Japanese text exactly: {line}. "
+            f"Large, extra-bold, easy-to-read Japanese text: {line}. "
             f"Centered, high contrast, strong drop shadow on the letters. "
             f"No other words, no logo, no watermark."
         )

@@ -46,9 +46,9 @@ class Article(BaseModel):
     slug: str = ""
     lead: str = ""
     # Required editorial fields (enforced for every article)
-    what_you_learn: List[str] = Field(..., min_length=3, max_length=3)
+    what_you_learn: List[str] = Field(..., min_length=1)
     reading_time_min: int = Field(..., ge=1)
-    practice_time_min: int = Field(..., ge=0)
+    practice_time_min: int = Field(default=0, ge=0)
     evidence_confidence: str
     sections: List[Section] = Field(..., min_length=1)
     closing: str = ""

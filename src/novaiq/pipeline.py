@@ -24,6 +24,7 @@ class RunResult:
     dry_run: bool
     logs: List[str] = field(default_factory=list)
     paper: Optional[Paper] = None
+    papers: List[Paper] = field(default_factory=list)
     article: Optional[Article] = None
     post_html: str = ""
     preview_path: Optional[Path] = None
@@ -43,6 +44,8 @@ def run_once(
     dry_run: bool = True,
     with_image: bool = True,
     apply_deco: bool = True,
+    search_query: str | None = None,
+    max_papers: int = 3,
     log: Logger | None = None,
 ) -> RunResult:
     settings = settings or get_settings()
@@ -59,11 +62,12 @@ def run_once(
         template: Template = get_template(template_id)
         _log(f"▶ テンプレート: {template.genre_label} / {template.name}")
 
-        _log(f"🔎 論文を検索中… (query='{template.search_query}', lang={language})")
+        query = (search_query or template.search_query).strip()
+        _log(f"🔎 論文を検索中… (query='{query}', lang={language})")
         candidates = fetch_candidates(
             settings,
-            template.search_query,
-            limit=15,
+            query,
+            limit=20,
             language=language,
             use_pubmed=use_pubmed,
             min_year=min_year,
@@ -74,24 +78,32 @@ def run_once(
             _log("✖ " + result.error)
             return result
 
-        paper: Optional[Paper] = None
+        selected: List[Paper] = []
         for cand in candidates:
             if dry_run or not already_posted(cand.source, cand.source_id, cand.doi):
-                paper = cand
+                selected.append(cand)
+            if len(selected) >= max(1, max_papers):
                 break
-        if paper is None:
-            paper = candidates[0]
-            _log("   （すべて投稿済みのため、先頭の論文を再利用します）")
+        if not selected:
+            selected = candidates[: max(1, max_papers)]
+            _log("   （未投稿の候補が少ないため、先頭から再利用します）")
 
+        paper = selected[0]
         result.paper = paper
-        _log(f"📄 採用: {paper.title[:70]}… (被引用 {paper.cited_by_count}, {paper.source})")
+        result.papers = selected
+        for i, p in enumerate(selected, 1):
+            _log(f"📄 採用{i}: {p.title[:70]}… (被引用 {p.cited_by_count}, {p.source})")
 
         # Generate article
         deco_names = [d.name for d in load_decorations() if d.enabled]
         if settings.has_openai:
             _log(f"✍  記事を生成中… (model={settings.text_model})")
             article = generate_article(
-                settings, paper, template, deco_names=deco_names if apply_deco else None
+                settings,
+                paper=paper,
+                template=template,
+                papers=selected,
+                deco_names=deco_names if apply_deco else None,
             )
         else:
             _log("✍  OPENAI_API_KEY 未設定 → モック記事を生成（構造確認用）")
@@ -101,6 +113,8 @@ def run_once(
 
         if apply_deco and deco_names:
             _log(f"🎨 装飾を適用: {', '.join(deco_names[:8])}{'…' if len(deco_names) > 8 else ''}")
+        if article.lead:
+            article.lead = apply_decorations(article.lead, enabled=apply_deco)
         for sec in article.sections:
             sec.html = apply_decorations(sec.html, enabled=apply_deco)
         if article.closing:
@@ -124,7 +138,7 @@ def run_once(
             result.image_path = image_path
 
         # Compose HTML
-        post_html = build_post_html(article, paper)
+        post_html = build_post_html(article, paper, papers=selected)
         result.post_html = post_html
 
         # Always write local artifacts for inspection
@@ -132,7 +146,7 @@ def run_once(
             article.model_dump_json(indent=2), encoding="utf-8"
         )
         preview = build_preview_page(
-            article, paper, image_rel=image_path.name if image_path else None
+            article, paper, papers=selected, image_rel=image_path.name if image_path else None
         )
         preview_path = OUTPUT_DIR / "preview.html"
         preview_path.write_text(preview, encoding="utf-8")
@@ -193,9 +207,10 @@ def run_once(
                 f"{settings.wp_url}/wp-admin/post.php?post={post.get('id')}&action=edit"
             )
 
-        mark_posted(
-            paper.source, paper.source_id, paper.doi, article.title, result.wp_post_id, template_id
-        )
+        for p in selected:
+            mark_posted(
+                p.source, p.source_id, p.doi, article.title, result.wp_post_id, template_id
+            )
         _log(f"✅ 下書き作成完了: post_id={result.wp_post_id}")
         _log(f"   編集URL: {result.wp_edit_link}")
         result.ok = True

@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Env / secrets
+.env
+*.local
+
+# Runtime data / outputs
+data/state.db
+output/
+.streamlit/secrets.toml
+
+# OS
+.DS_Store
+Thumbs.db

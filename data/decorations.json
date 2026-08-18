@@ -1,0 +1,110 @@
+[
+  {
+    "name": "太字",
+    "code": "<span class=\"huto\">{content}</span>",
+    "description": "AFFINGER テキスト：太字（下書き14より）",
+    "enabled": true
+  },
+  {
+    "name": "太赤字",
+    "code": "<span class=\"hutoaka\">{content}</span>",
+    "description": "AFFINGER テキスト：太赤字",
+    "enabled": true
+  },
+  {
+    "name": "黄マーカー",
+    "code": "<span class=\"ymarker\">{content}</span>",
+    "description": "AFFINGER マーカー：黄（よく使う）",
+    "enabled": true
+  },
+  {
+    "name": "黄マーカー細",
+    "code": "<span class=\"ymarker-s\">{content}</span>",
+    "description": "AFFINGER マーカー：黄（細）",
+    "enabled": true
+  },
+  {
+    "name": "赤マーカー",
+    "code": "<span class=\"rmarker\">{content}</span>",
+    "description": "AFFINGER マーカー：赤",
+    "enabled": true
+  },
+  {
+    "name": "青マーカー",
+    "code": "<span class=\"bmarker\">{content}</span>",
+    "description": "AFFINGER マーカー：青",
+    "enabled": true
+  },
+  {
+    "name": "ドット線",
+    "code": "<span class=\"dotline\">{content}</span>",
+    "description": "AFFINGER テキスト：ドット下線",
+    "enabled": true
+  },
+  {
+    "name": "はてな",
+    "code": "<span class=\"hatenamark2 on-color\">{content}</span>",
+    "description": "AFFINGER アイコン：はてな",
+    "enabled": true
+  },
+  {
+    "name": "注意マーク",
+    "code": "<span class=\"attentionmark2 on-color\">{content}</span>",
+    "description": "AFFINGER アイコン：注意",
+    "enabled": true
+  },
+  {
+    "name": "チェック",
+    "code": "<span class=\"checkmark2 on-color\">{content}</span>",
+    "description": "AFFINGER アイコン：チェック",
+    "enabled": true
+  },
+  {
+    "name": "メモ",
+    "code": "[st-cmemo webicon=\"st-svg-file-text-o\" iconcolor=\"#919191\" bgcolor=\"#fafafa\" color=\"#000000\" iconsize=\"100\"]{content}[/st-cmemo]",
+    "description": "AFFINGER クリップメモ：メモ",
+    "enabled": true
+  },
+  {
+    "name": "ポイント",
+    "code": "[st-cmemo webicon=\"st-svg-lightbulb-o\" iconcolor=\"#FFA726\" bgcolor=\"#FFF3E0\" color=\"#000000\" iconsize=\"100\"]{content}[/st-cmemo]",
+    "description": "AFFINGER クリップメモ：ポイント（電球）",
+    "enabled": true
+  },
+  {
+    "name": "注意",
+    "code": "[st-cmemo webicon=\"st-svg-exclamation-circle\" iconcolor=\"#ef5350\" bgcolor=\"#ffebee\" color=\"#000000\" iconsize=\"100\"]{content}[/st-cmemo]",
+    "description": "AFFINGER クリップメモ：注意（赤）",
+    "enabled": true
+  },
+  {
+    "name": "はてなボックス",
+    "code": "[st-cmemo webicon=\"st-svg-question-circle\" iconcolor=\"#4FC3F7\" bgcolor=\"#E1F5FE\" color=\"#000000\" iconsize=\"100\"]{content}[/st-cmemo]",
+    "description": "AFFINGER クリップメモ：はてな",
+    "enabled": true
+  },
+  {
+    "name": "囲み",
+    "code": "[st-mybox title=\"\" webicon=\"\" color=\"#757575\" bordercolor=\"\" bgcolor=\"#FFFDE7\" borderwidth=\"0\" borderradius=\"5\" titleweight=\"bold\" fontsize=\"\"]{content}[/st-mybox]",
+    "description": "AFFINGER マイボックス：黄背景の囲み",
+    "enabled": true
+  },
+  {
+    "name": "ポイントボックス",
+    "code": "[st-mybox title=\"ポイント\" webicon=\"st-svg-check-circle\" color=\"#757575\" bordercolor=\"#BDBDBD\" bgcolor=\"#ffffff\" borderwidth=\"2\" borderradius=\"5\" titleweight=\"bold\"]{content}[/st-mybox]",
+    "description": "AFFINGER マイボックス：ポイント見出し付き",
+    "enabled": true
+  },
+  {
+    "name": "吹き出し",
+    "code": "[st-minihukidashi bgcolor=\"#FFB74D\" color=\"#fff\" margin=\"0 0 20px 0\"]{content}[/st-minihukidashi]",
+    "description": "AFFINGER ミニ吹き出し：オレンジ",
+    "enabled": true
+  },
+  {
+    "name": "会話",
+    "code": "[st-kaiwa1]{content}[/st-kaiwa1]",
+    "description": "AFFINGER 会話吹き出し1",
+    "enabled": true
+  }
+]

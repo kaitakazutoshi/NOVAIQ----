@@ -62,7 +62,11 @@ def build_post_html(
     )
 
     if article.lead:
-        parts.append(f"<p>{strip_leftover_deco_tags(article.lead)}</p>")
+        lead = strip_leftover_deco_tags(article.lead).strip()
+        if lead.lower().startswith("<p"):
+            parts.append(lead)
+        else:
+            parts.append(f"<p>{lead}</p>")
 
     for sec in article.sections:
         if sec.heading.strip():

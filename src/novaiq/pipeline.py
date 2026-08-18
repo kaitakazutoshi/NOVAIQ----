@@ -42,7 +42,7 @@ def run_once(
     min_year: int | None = None,
     dry_run: bool = True,
     with_image: bool = True,
-        apply_deco: bool = True,
+    apply_deco: bool = True,
     log: Logger | None = None,
 ) -> RunResult:
     settings = settings or get_settings()
@@ -110,8 +110,17 @@ def run_once(
         image_path = None
         if with_image:
             image_path = OUTPUT_DIR / "eyecatch.png"
-            _log("🖼  アイキャッチ画像を生成中…" + ("" if settings.has_openai else "（プレースホルダ）"))
-            generate_eyecatch(settings, article, image_path, use_api=settings.has_openai)
+            from .generate.image import wants_text_on_image
+
+            kind = "文字あり" if wants_text_on_image(article) else "文字なし"
+            _log(
+                "🖼  アイキャッチ画像を生成中…"
+                + ("" if settings.has_openai else "（プレースホルダ）")
+                + f"（{kind}）"
+            )
+            generate_eyecatch(
+                settings, article, image_path, use_api=settings.has_openai, paper=paper
+            )
             result.image_path = image_path
 
         # Compose HTML

@@ -38,10 +38,8 @@ def mock_article(paper: Paper, template: Template) -> Article:
         ],
         closing="続きは、環境をひとつだけ変えるところから。",
         today_action="関連する行動を1つだけ、5分でよいので今日試してみる。",
-        limitations=(
-            "本文はモック生成のサンプルです。研究には対象集団や条件などの限界があり、"
-            "すべての人に当てはまるとは限りません。"
-        ),
+        limitations="",
         related_links=[RelatedLink(label="元論文", url=paper.url or "https://openalex.org")],
         tags=[template.genre_label, "モック"],
+        eyecatch_text="環境を変える",
     )

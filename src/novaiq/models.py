@@ -53,6 +53,8 @@ class Article(BaseModel):
     sections: List[Section] = Field(..., min_length=1)
     closing: str = ""
     today_action: str
-    limitations: str
+    limitations: str = ""
     related_links: List[RelatedLink] = Field(default_factory=list)
     tags: List[str] = Field(default_factory=list)
+    # Short Japanese line for on-image text; empty = no-text eyecatch
+    eyecatch_text: str = ""

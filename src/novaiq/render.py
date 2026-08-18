@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import html as _html
 from typing import Optional
+from urllib.parse import urlparse
 
 from .models import Article, Paper
 
@@ -11,11 +12,31 @@ def _esc(s: str) -> str:
     return _html.escape(s, quote=True)
 
 
+def source_site_name(paper: Paper) -> str:
+    """Human-readable site/venue name for the discreet citation footer."""
+    if paper.venue:
+        return paper.venue
+    url = paper.url or (f"https://doi.org/{paper.doi}" if paper.doi else "")
+    if not url:
+        return paper.source
+    host = urlparse(url).netloc.lower()
+    if host.startswith("www."):
+        host = host[4:]
+    return host or paper.source
+
+
+def source_url(paper: Paper) -> str:
+    if paper.url:
+        return paper.url
+    if paper.doi:
+        return f"https://doi.org/{paper.doi}"
+    return ""
+
+
 def build_post_html(article: Article, paper: Paper, *, image_url: Optional[str] = None) -> str:
-    """Build clean, theme-independent post body HTML (no decoration in Phase 1)."""
+    """Build post body HTML. Citation sits last, small and unobtrusive."""
     parts: list[str] = []
 
-    # Summary / info box (required fields at a glance)
     learn = "".join(f"<li>{_esc(x)}</li>" for x in article.what_you_learn)
     parts.append(
         '<div class="novaiq-summary" '
@@ -31,7 +52,6 @@ def build_post_html(article: Article, paper: Paper, *, image_url: Optional[str] 
     if article.lead:
         parts.append(f"<p>{_esc(article.lead)}</p>")
 
-    # Body sections (html is model-produced; kept as-is)
     for sec in article.sections:
         if sec.heading.strip():
             parts.append(f"<h2>{_esc(sec.heading)}</h2>")
@@ -40,33 +60,29 @@ def build_post_html(article: Article, paper: Paper, *, image_url: Optional[str] 
     if article.closing:
         parts.append(f"<p>{article.closing}</p>")
 
-    # Today's action
     parts.append(
         '<div class="novaiq-action" '
         'style="background:#f4f1ff;border-left:4px solid #7c5cff;padding:12px 16px;margin:24px 0;">'
         f"<strong>今日の1アクション:</strong> {_esc(article.today_action)}</div>"
     )
 
-    # Limitations
-    parts.append("<h2>限界・注意</h2>")
-    parts.append(f"<p>{_esc(article.limitations)}</p>")
-
-    # Related links
-    if article.related_links:
-        links = "".join(
-            f'<li><a href="{_esc(l.url)}" target="_blank" rel="noopener">{_esc(l.label)}</a></li>'
-            for l in article.related_links
+    if article.limitations.strip():
+        parts.append(
+            '<p class="novaiq-note" style="font-size:0.9em;color:#666;margin:20px 0 8px;">'
+            f"※ {_esc(article.limitations)}</p>"
         )
-        parts.append("<h2>関連リンク</h2>")
-        parts.append(f"<ul>{links}</ul>")
 
-    # Source citation
-    parts.append(
-        '<p style="font-size:0.85em;color:#666;margin-top:24px;">'
-        f"出典: {_esc(paper.short_citation())}"
-        + (f' DOI: <a href="https://doi.org/{_esc(paper.doi)}">{_esc(paper.doi)}</a>' if paper.doi else "")
-        + f"（被引用数 {paper.cited_by_count}）</p>"
+    site = source_site_name(paper)
+    url = source_url(paper)
+    cite = (
+        '<p class="novaiq-cite" style="font-size:0.75em;color:#999;margin-top:32px;'
+        'border-top:1px solid #eee;padding-top:12px;">'
+        f"出典: {_esc(site)}"
     )
+    if url:
+        cite += f' · <a href="{_esc(url)}" target="_blank" rel="noopener" style="color:#999;">{_esc(url)}</a>'
+    cite += "</p>"
+    parts.append(cite)
 
     return "\n".join(parts)
 
@@ -96,6 +112,7 @@ def build_preview_page(article: Article, paper: Paper, *, image_rel: Optional[st
   .tag {{ color:#9a8cff; font-size:.85em; margin-right:6px; }}
   .novaiq-summary {{ background:#0e1330; border-color:#2a3160 !important; }}
   .novaiq-action {{ background:#1a1640 !important; }}
+  .novaiq-cite {{ color:#7a82b0 !important; border-color:#2a3160 !important; }}
 </style></head>
 <body><div class="wrap">
 {img_tag}

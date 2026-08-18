@@ -103,6 +103,8 @@ def run_once(
             _log(f"🎨 装飾を適用: {', '.join(deco_names[:8])}{'…' if len(deco_names) > 8 else ''}")
         for sec in article.sections:
             sec.html = apply_decorations(sec.html, enabled=apply_deco)
+        if article.closing:
+            article.closing = apply_decorations(article.closing, enabled=apply_deco)
 
         # Image
         image_path = None

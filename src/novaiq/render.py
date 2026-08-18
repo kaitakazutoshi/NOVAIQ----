@@ -33,8 +33,12 @@ def build_post_html(article: Article, paper: Paper, *, image_url: Optional[str] 
 
     # Body sections (html is model-produced; kept as-is)
     for sec in article.sections:
-        parts.append(f"<h2>{_esc(sec.heading)}</h2>")
+        if sec.heading.strip():
+            parts.append(f"<h2>{_esc(sec.heading)}</h2>")
         parts.append(sec.html)
+
+    if article.closing:
+        parts.append(f"<p>{article.closing}</p>")
 
     # Today's action
     parts.append(

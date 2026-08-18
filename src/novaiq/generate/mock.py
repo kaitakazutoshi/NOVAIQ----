@@ -29,15 +29,14 @@ def mock_article(paper: Paper, template: Template) -> Article:
         evidence_confidence="中（査読論文だが本文はモック生成のため参考）",
         sections=[
             Section(
-                heading=h,
+                heading="",
                 html=(
-                    f"<p>「{h}」に関する解説がここに入ります。"
-                    "実際の記事ではOpenAI APIが論文アブストラクトを基に本文を生成します。</p>"
-                    "<ul><li>ポイント1</li><li>ポイント2</li></ul>"
+                    f"<p>{template.genre_label}の視点で、この研究をやさしく解説するサンプルです。"
+                    "実際の記事ではOpenAI APIが本文を生成します。</p>"
                 ),
             )
-            for h in (template.outline or ["概要", "詳細", "まとめ"])
         ],
+        closing="続きは、環境をひとつだけ変えるところから。",
         today_action="関連する行動を1つだけ、5分でよいので今日試してみる。",
         limitations=(
             "本文はモック生成のサンプルです。研究には対象集団や条件などの限界があり、"

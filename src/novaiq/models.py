@@ -51,6 +51,7 @@ class Article(BaseModel):
     practice_time_min: int = Field(..., ge=0)
     evidence_confidence: str
     sections: List[Section] = Field(..., min_length=1)
+    closing: str = ""
     today_action: str
     limitations: str
     related_links: List[RelatedLink] = Field(default_factory=list)

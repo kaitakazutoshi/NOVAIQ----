@@ -124,7 +124,6 @@ def generate_article(
             {"role": "user", "content": _build_user_prompt(paper, template, deco_names)},
         ],
         response_format={"type": "json_object"},
-        temperature=0.7,
     )
     raw = resp.choices[0].message.content or "{}"
     data = json.loads(raw)

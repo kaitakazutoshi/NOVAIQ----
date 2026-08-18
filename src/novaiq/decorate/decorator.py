@@ -18,7 +18,7 @@ from typing import List
 from .store import Decoration, load_decorations
 
 _DECO_RE = re.compile(
-    r'<span\s+data-deco="(?P<name>[^"]+)"\s*>(?P<content>.*?)</span>',
+    r'<(span|div)\s+data-deco="(?P<name>[^"]+)"\s*>(?P<content>.*?)</\1>',
     re.DOTALL,
 )
 

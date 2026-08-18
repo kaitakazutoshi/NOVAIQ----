@@ -8,7 +8,8 @@ from .store import (
     load_default_decorations,
     reset_to_defaults,
 )
-from .decorator import apply_decorations
+from .decorator import apply_decorations, strip_leftover_deco_tags
+from .prepare import prepare_article, prepare_html
 
 __all__ = [
     "Decoration",
@@ -19,4 +20,7 @@ __all__ = [
     "load_default_decorations",
     "reset_to_defaults",
     "apply_decorations",
+    "strip_leftover_deco_tags",
+    "prepare_article",
+    "prepare_html",
 ]

@@ -76,3 +76,41 @@ class ConnectorClient:
         if r.status_code >= 400:
             raise WordPressError(f"connector post -> {r.status_code}: {r.text[:400]}")
         return r.json()
+
+    def update_draft(
+        self,
+        post_id: int,
+        *,
+        title: Optional[str] = None,
+        content: Optional[str] = None,
+        category_names: Optional[List[str]] = None,
+        tag_names: Optional[List[str]] = None,
+        image_path: Optional[Path] = None,
+        slug: str = "",
+        status: Optional[str] = None,
+    ) -> dict:
+        payload: dict = {"id": post_id}
+        if title is not None:
+            payload["title"] = title
+        if content is not None:
+            payload["content"] = content
+        if status:
+            payload["status"] = status
+        if slug:
+            payload["slug"] = slug
+        if category_names:
+            payload["categories"] = category_names
+        if tag_names:
+            payload["tags"] = tag_names
+        if image_path and Path(image_path).exists():
+            payload["image_base64"] = base64.b64encode(Path(image_path).read_bytes()).decode()
+            payload["image_filename"] = Path(image_path).name
+        r = requests.post(
+            self._url("/update"),
+            headers={**self.headers, "Content-Type": "application/json"},
+            json=payload,
+            timeout=180,
+        )
+        if r.status_code >= 400:
+            raise WordPressError(f"connector update -> {r.status_code}: {r.text[:400]}")
+        return r.json()

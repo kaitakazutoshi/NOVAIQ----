@@ -10,6 +10,20 @@ from ..models import Article, Paper
 # ~70% of eyecatches include large Japanese text.
 WITH_TEXT_RATIO = 7  # out of 10
 
+# Landscape default. gpt-image-2 accepts 1024x1024 / 1536x1024 / 1024x1536 / auto.
+LANDSCAPE_SIZE = "1536x1024"
+
+_BG_SOLID = (
+    "solid black",
+    "solid black",
+    "solid white",
+    "solid white",
+    "solid black",
+    "solid white",
+    "deep red",
+    "vivid yellow",
+)
+
 
 def wants_text_on_image(article: Article) -> bool:
     """Deterministic ~70% with-text, tied to the article title."""
@@ -23,10 +37,18 @@ def text_for_image(article: Article) -> str:
     return ((article.eyecatch_text or "").strip() or article.title)
 
 
+def _bg_choice(article: Article) -> str:
+    """Mostly black or white; occasionally red or yellow."""
+    n = sum(ord(c) for c in article.title) % 10
+    if n >= 8:
+        return _BG_SOLID[6 + (n - 8)]  # red or yellow
+    return _BG_SOLID[n % 6]
+
+
 def _placeholder_png(path: Path, title: str, line: str = "") -> Path:
     from PIL import Image, ImageDraw
 
-    w, h = 1024, 1024
+    w, h = 1536, 1024
     img = Image.new("RGB", (w, h))
     px = img.load()
     for y in range(h):
@@ -47,7 +69,7 @@ def _placeholder_png(path: Path, title: str, line: str = "") -> Path:
         bright = random.randint(120, 255)
         draw.ellipse([sx, sy, sx + 1, sy + 1], fill=(bright, bright, 255))
     caption = line.strip() or "NOVAIQ (placeholder)"
-    draw.text((60, h // 2), caption[:24], fill=(255, 255, 255))
+    draw.text((80, h // 2), caption[:40], fill=(255, 255, 255))
     img.save(path, "PNG")
     return path
 
@@ -60,20 +82,26 @@ def _visual_hint(article: Article, paper: Paper | None) -> str:
 
 
 def build_eyecatch_prompt(article: Article, paper: Paper | None, *, with_text: bool) -> str:
-    """Keep prompts short. Visual must match the paper; text style is a fixed template."""
+    """Landscape eyecatch. Background is a color field; photos must be blurred."""
     hint = _visual_hint(article, paper)
+    bg = _bg_choice(article)
+    photo = (
+        f"Optional quiet scene related to: {hint}. "
+        f"If any photograph or detailed scene is used, apply a strong blur "
+        f"so overlay text stays perfectly readable. Prefer a simple {bg} field."
+    )
     if with_text:
         line = (article.eyecatch_text or "").strip() or article.title
         return (
-            f"Simple uncluttered background, one color or soft gradient. "
-            f"Quiet scene related to: {hint}. "
+            f"Wide landscape 16:9 composition, not square. "
+            f"Background: {bg} (solid or very soft gradient). {photo} "
             f"Large, extra-bold, easy-to-read Japanese text: {line}. "
-            f"Centered, high contrast, strong drop shadow on the letters. "
+            f"Centered, high contrast against the background, strong drop shadow on the letters. "
             f"No other words, no logo, no watermark."
         )
     return (
-        f"Simple uncluttered background. "
-        f"Quiet scene related to: {hint}. "
+        f"Wide landscape 16:9 composition, not square. "
+        f"Background: {bg} (solid or very soft gradient). {photo} "
         f"No text, no letters, no logo, no watermark."
     )
 
@@ -96,10 +124,11 @@ def generate_eyecatch(
 
     client = OpenAI(api_key=settings.openai_api_key)
     prompt = build_eyecatch_prompt(article, paper, with_text=with_text)
+    size = settings.image_size or LANDSCAPE_SIZE
     result = client.images.generate(
         model=settings.image_model,
         prompt=prompt,
-        size=settings.image_size,
+        size=size,
         quality=settings.image_quality,
         n=1,
     )

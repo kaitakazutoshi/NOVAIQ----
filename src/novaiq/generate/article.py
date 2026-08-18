@@ -31,13 +31,20 @@ SYSTEM_PROMPT = """あなたは自己啓発×論文を専門とする日本語�
 - limitations は必須ではない。誤解や強い読みが起きそうなときだけ。不要なら空文字。
 - 出典URLは本文に大きく出さない（末尾にシステムが付ける）。
 
-# この記事でわかること
-- 読者が得する中身が、一目で分かること。専門用語を並べない。
-- 箇条書きでも、短い文章でもよい。内容に合わせて選ぶ。
-- 件数は固定しない（目安2〜5）。what_you_learn は文字列の配列。1件だけなら文章として扱う。
+# この記事でわかること（what_you_learn）
+- 読者が得する中身が、一目で分かること。論文用語・専門用語を並べない。
+- 箇条書きにする場合は最大3個。4つ以上は禁止。短い文章1本でもよい。
+- 一般の人が読みやすい「見出し」にする。体言止めや「〜理由」「〜思考法」など、目次のように読める短文。
+- 良い例（内容は記事に合わせて変える。使うのはこのうち最大3つ）:
+  - LEDは「明るさ」だけでなく「光の質」で選ぶべき理由
+  - 室温より重要。局所的な冷暖房の風が「体感ストレス」となる
+  - 睡眠不足から心理状態まで、すべての疲労を「総ストレス量」として管理する思考法
+  - 照明と室温を「配置と設定」だけで最適化
+- 悪い例: 「LED照明は、明るさだけでなく光のスペクトルや色の再現性など、複数の条件で評価されること」
 
 # 読みやすさ
 - 段落を短く。1段落1メッセージ。積極的に改行する。
+- ①②③と並べるときは1行に詰めない。必ず <ol><li>…</li></ol> の順序付きリストにする。導入文は別の <p> に置く。
 - 伝えたい一文の前後に空段落を2つ入れる演出は使わない。
 
 # 事実
@@ -45,9 +52,14 @@ SYSTEM_PROMPT = """あなたは自己啓発×論文を専門とする日本語�
 - 複数論文があるときは、どれがどの知見か分かるように書く（著者名の連呼はしない）。
 
 # 装飾（多めに。見て飽きない）
-- ショートコードは書かない。<span data-deco="名前">対象</span> だけ使う。
+- ショートコード（[st-mybox] 等）は絶対に書かない。<span data-deco="名前">対象</span> だけ使う。
+- data-deco は入れ子にしない。1つの要素に装飾は1つ。
+- 装飾の名前そのもの（「ポイント」「注意」「囲み」など）を本文に書かない。箱の見出しはシステムが付ける。
+  悪い例: <span data-deco="ポイント">ポイント：LEDなら何でも同じではない</span>
+  良い例: <span data-deco="ポイント">LEDなら何でも同じではない</span>
 - 太字（data-deco="太字"）は重要語・結論に多めに。黄マーカー・ポイント・注意・囲み・吹き出しも混ぜる。
 - 全文マーカーは禁止。囲み/ポイント/注意は記事全体で3〜6個。
+- lead にも data-deco を使ってよい（生のHTMLタグを文章として書いてはいけない）。
 
 # アイキャッチ文言
 - eyecatch_text は記事の核。文字数制限なし。読みやすいフレーズや短い文でよい。文字なしにする回だけ空文字。
@@ -57,11 +69,11 @@ SYSTEM_PROMPT = """あなたは自己啓発×論文を専門とする日本語�
   "title": "日本語タイトル",
   "slug": "short-english-slug",
   "lead": "フックの強い冒頭",
-  "what_you_learn": ["わかりやすい項目。件数は自由"],
+  "what_you_learn": ["見出し風の項目。箇条書きなら最大3個"],
   "reading_time_min": 6,
   "evidence_confidence": "高 または 中 または 低",
   "sections": [
-    {"heading": "H2。使わない場合は空文字", "html": "<p>本文。p, ul, ol, li, strong, em, blockquote, h3 と data-deco の span のみ</p>"}
+    {"heading": "H2。使わない場合は空文字", "html": "<p>本文。p, ul, ol, li, strong, em, blockquote, h3 と data-deco の span のみ。①②③は ol にする</p>"}
   ],
   "closing": "締めの1〜2文",
   "today_action": "今日すぐできる外的な1アクション",
@@ -118,6 +130,8 @@ def _build_user_prompt(
 # 指示
 必須項目をJSONで出力。related_links には使った各論文のURLまたはDOIを含める。
 evidence_confidence は「高」「中」「低」の1語だけ。
+what_you_learn は箇条書きなら最大3個。見出しのように読める短文。
+①②③は <ol><li> にする。data-deco は入れ子にしない。装飾名を本文に書かない。
 eyecatch_text は記事の核（文字数制限なし）。空なら文字なし画像。
 """
 
@@ -169,5 +183,8 @@ def generate_article(
     yl = data.get("what_you_learn")
     if isinstance(yl, str):
         data["what_you_learn"] = [yl]
+    elif isinstance(yl, list):
+        cleaned = [str(x).strip() for x in yl if str(x).strip()]
+        data["what_you_learn"] = cleaned[:3] if len(cleaned) > 1 else cleaned
     data["practice_time_min"] = 0
     return Article.model_validate(data)

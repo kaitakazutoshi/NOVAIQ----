@@ -20,7 +20,7 @@ pip install -r requirements.txt
 - `OPENAI_API_KEY` … 記事・画像生成に必要
 - `WP_URL` / `WP_USERNAME` / `WP_APP_PASSWORD` … 下書き投稿に必要（アプリケーションパスワード）
 - `NOVAIQ_TEXT_MODEL`（既定 `gpt-5.6-luna`）/ `NOVAIQ_IMAGE_MODEL`（既定 `gpt-image-2`）… いつでも変更可
-- 画像はコスパ優先: `NOVAIQ_IMAGE_SIZE=1024x1024` / `NOVAIQ_IMAGE_QUALITY=low`
+- 画像は横長アイキャッチ: `NOVAIQ_IMAGE_SIZE=1536x1024` / `NOVAIQ_IMAGE_QUALITY=low`
 
 ## 使い方
 
@@ -51,7 +51,7 @@ ConoHa WING などは前段の nginx/WAF が標準の `Authorization` ヘッダ�
 1. `wordpress/novaiq-connector.php` を WordPress の `wp-content/mu-plugins/` に配置（フォルダが無ければ作成）。mu-plugins は自動有効化されます。
 2. プラグイン内の `NOVAIQ_API_KEY`（`CHANGE_ME_TO_A_LONG_RANDOM_STRING`）を長いランダム文字列に変更。
 3. 同じ値を、ツール側の Secrets / `.env` の `NOVAIQ_API_KEY` に設定。
-4. `WP_URL` も設定。これで `NOVAIQ_API_KEY` があるときは自動的に Connector 経由（下書き作成・アイキャッチ同梱）で投稿します。
+4. `WP_URL` も設定。これで `NOVAIQ_API_KEY` があるときは自動的に Connector 経由（下書き作成・アイキャッチ同梱）で投稿します。既存下書きの差し替えには Connector 0.2.0 の `/update` が必要です。mu-plugins の PHP を更新してください。
 
 ## ConoHa / WordPress で認証が通らないとき（Application Password を使う場合）
 

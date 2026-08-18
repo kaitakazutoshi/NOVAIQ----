@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Callable, List, Optional
 
 from .config import OUTPUT_DIR, Settings, get_settings
-from .decorate import apply_decorations, load_decorations
+from .decorate import load_decorations, prepare_article
 from .generate import generate_article, generate_eyecatch, mock_article
 from .models import Article, Paper
 from .render import build_post_html, build_preview_page
@@ -113,12 +113,7 @@ def run_once(
 
         if apply_deco and deco_names:
             _log(f"🎨 装飾を適用: {', '.join(deco_names[:8])}{'…' if len(deco_names) > 8 else ''}")
-        if article.lead:
-            article.lead = apply_decorations(article.lead, enabled=apply_deco)
-        for sec in article.sections:
-            sec.html = apply_decorations(sec.html, enabled=apply_deco)
-        if article.closing:
-            article.closing = apply_decorations(article.closing, enabled=apply_deco)
+        prepare_article(article, enabled=apply_deco)
 
         # Image
         image_path = None

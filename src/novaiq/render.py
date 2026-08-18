@@ -5,6 +5,7 @@ import html as _html
 from typing import List, Optional, Sequence
 from urllib.parse import urlparse
 
+from .decorate.decorator import strip_leftover_deco_tags
 from .models import Article, Paper
 
 
@@ -44,7 +45,7 @@ def build_post_html(
     items: List[Paper] = list(papers) if papers else ([paper] if paper else [])
     parts: list[str] = []
 
-    learn_items = [x for x in article.what_you_learn if str(x).strip()]
+    learn_items = [x for x in article.what_you_learn if str(x).strip()][:3]
     if len(learn_items) <= 1:
         learn_body = f"<p style=\"margin:0;\">{_esc(learn_items[0]) if learn_items else ''}</p>"
     else:
@@ -61,15 +62,15 @@ def build_post_html(
     )
 
     if article.lead:
-        parts.append(f"<p>{article.lead}</p>")
+        parts.append(f"<p>{strip_leftover_deco_tags(article.lead)}</p>")
 
     for sec in article.sections:
         if sec.heading.strip():
             parts.append(f"<h2>{_esc(sec.heading)}</h2>")
-        parts.append(sec.html)
+        parts.append(strip_leftover_deco_tags(sec.html))
 
     if article.closing:
-        parts.append(f"<p>{article.closing}</p>")
+        parts.append(f"<p>{strip_leftover_deco_tags(article.closing)}</p>")
 
     parts.append(
         '<div class="novaiq-action" '

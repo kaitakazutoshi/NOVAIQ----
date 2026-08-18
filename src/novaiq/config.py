@@ -34,7 +34,7 @@ class Settings:
     openai_api_key: str = field(default_factory=lambda: _env("OPENAI_API_KEY"))
     text_model: str = field(default_factory=lambda: _env("NOVAIQ_TEXT_MODEL", "gpt-5.6-luna"))
     image_model: str = field(default_factory=lambda: _env("NOVAIQ_IMAGE_MODEL", "gpt-image-2"))
-    image_size: str = field(default_factory=lambda: _env("NOVAIQ_IMAGE_SIZE", "1024x1024"))
+    image_size: str = field(default_factory=lambda: _env("NOVAIQ_IMAGE_SIZE", "1536x1024"))
     image_quality: str = field(default_factory=lambda: _env("NOVAIQ_IMAGE_QUALITY", "low"))
 
     wp_url: str = field(default_factory=lambda: _env("WP_URL").rstrip("/"))

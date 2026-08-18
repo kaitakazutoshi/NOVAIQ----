@@ -4,7 +4,7 @@
  * Description: NOVAIQ 自動投稿ツール用のカスタムRESTエンドポイント。標準の
  *   Authorization ヘッダを落とすホスト（ConoHa WING 等）でも動くよう、独自ヘッダ
  *   X-NOVAIQ-KEY で認証します。wp-content/mu-plugins/ に置くと自動有効化されます。
- * Version: 0.1.0
+ * Version: 0.2.0
  */
 
 if (!defined('ABSPATH')) {
@@ -37,6 +37,11 @@ add_action('rest_api_init', function () {
     register_rest_route('novaiq/v1', '/get', array(
         'methods'             => 'GET',
         'callback'            => 'novaiq_get_post',
+        'permission_callback' => 'novaiq_check_key',
+    ));
+    register_rest_route('novaiq/v1', '/update', array(
+        'methods'             => 'POST',
+        'callback'            => 'novaiq_update_post',
         'permission_callback' => 'novaiq_check_key',
     ));
 });
@@ -225,6 +230,71 @@ function novaiq_create_post(WP_REST_Request $req) {
         );
     } catch (\Throwable $e) {
         // Surface the real error instead of a generic 500 page (aids debugging).
+        return new WP_Error('novaiq_exception', $e->getMessage(), array('status' => 500));
+    }
+}
+
+function novaiq_update_post(WP_REST_Request $req) {
+    try {
+        $p = $req->get_json_params();
+        if (!$p) {
+            $p = $req->get_params();
+        }
+
+        $id = isset($p['id']) ? (int) $p['id'] : 0;
+        if (!$id) {
+            return new WP_Error('novaiq_bad_request', 'id required', array('status' => 400));
+        }
+        $existing = get_post($id);
+        if (!$existing || $existing->post_type !== 'post') {
+            return new WP_Error('novaiq_not_found', 'post not found', array('status' => 404));
+        }
+
+        $postarr = array('ID' => $id);
+        if (isset($p['title']) && $p['title'] !== '') {
+            $postarr['post_title'] = wp_strip_all_tags($p['title']);
+        }
+        if (isset($p['content']) && $p['content'] !== '') {
+            $postarr['post_content'] = wp_kses_post($p['content']);
+        }
+        if (!empty($p['slug'])) {
+            $postarr['post_name'] = sanitize_title($p['slug']);
+        }
+        if (!empty($p['status'])) {
+            $allowed = array('draft', 'pending', 'publish', 'future');
+            if (in_array($p['status'], $allowed, true)) {
+                $postarr['post_status'] = $p['status'];
+            }
+        }
+        if (!empty($p['categories']) && is_array($p['categories'])) {
+            $cat_ids = novaiq_resolve_category_ids($p['categories']);
+            if ($cat_ids) {
+                $postarr['post_category'] = $cat_ids;
+            }
+        }
+
+        $updated = wp_update_post($postarr, true);
+        if (is_wp_error($updated)) {
+            return new WP_Error('novaiq_update_failed', $updated->get_error_message(), array('status' => 500));
+        }
+
+        $warnings = array();
+        if (!empty($p['tags']) && is_array($p['tags'])) {
+            wp_set_post_tags($id, array_map('sanitize_text_field', $p['tags']), false);
+        }
+        if (!empty($p['image_base64'])) {
+            $fname = !empty($p['image_filename']) ? sanitize_file_name($p['image_filename']) : 'eyecatch.png';
+            novaiq_attach_featured_image($id, $fname, $p['image_base64'], $warnings);
+        }
+
+        return array(
+            'ok'        => true,
+            'id'        => $id,
+            'status'    => get_post_status($id),
+            'edit_link' => admin_url('post.php?post=' . $id . '&action=edit'),
+            'warnings'  => $warnings,
+        );
+    } catch (\Throwable $e) {
         return new WP_Error('novaiq_exception', $e->getMessage(), array('status' => 500));
     }
 }

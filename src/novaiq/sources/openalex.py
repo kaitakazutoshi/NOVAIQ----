@@ -55,30 +55,60 @@ def search(
 
     papers: List[Paper] = []
     for w in data.get("results", []):
-        authors = [
-            a.get("author", {}).get("display_name", "")
-            for a in w.get("authorships", [])
-            if a.get("author")
-        ]
-        doi = (w.get("doi") or "").replace("https://doi.org/", "")
-        venue = ""
-        primary = w.get("primary_location") or {}
-        src = primary.get("source") or {}
-        if src:
-            venue = src.get("display_name", "") or ""
-        papers.append(
-            Paper(
-                source="openalex",
-                source_id=w.get("id", ""),
-                title=w.get("title") or w.get("display_name") or "",
-                abstract=_reconstruct_abstract(w.get("abstract_inverted_index")),
-                authors=[a for a in authors if a],
-                year=w.get("publication_year"),
-                venue=venue,
-                doi=doi,
-                url=w.get("doi") or w.get("id", ""),
-                cited_by_count=w.get("cited_by_count", 0) or 0,
-                language=w.get("language", "") or "",
-            )
-        )
+        paper = work_to_paper(w)
+        if paper:
+            papers.append(paper)
     return papers
+
+
+def work_to_paper(w: dict) -> Paper | None:
+    if not w:
+        return None
+    authors = [
+        a.get("author", {}).get("display_name", "")
+        for a in w.get("authorships", [])
+        if a.get("author")
+    ]
+    doi = (w.get("doi") or "").replace("https://doi.org/", "")
+    venue = ""
+    primary = w.get("primary_location") or {}
+    src = primary.get("source") or {}
+    if src:
+        venue = src.get("display_name", "") or ""
+    return Paper(
+        source="openalex",
+        source_id=w.get("id", ""),
+        title=w.get("title") or w.get("display_name") or "",
+        abstract=_reconstruct_abstract(w.get("abstract_inverted_index")),
+        authors=[a for a in authors if a],
+        year=w.get("publication_year"),
+        venue=venue,
+        doi=doi,
+        url=w.get("doi") or w.get("id", ""),
+        cited_by_count=w.get("cited_by_count", 0) or 0,
+        language=w.get("language", "") or "",
+    )
+
+
+def fetch_work(settings: Settings, work_id: str) -> Paper:
+    """Fetch one OpenAlex work by DOI, OpenAlex URL, or W-id."""
+    key = work_id.strip()
+    if key.startswith("https://doi.org/"):
+        key = "doi:" + key.replace("https://doi.org/", "")
+    elif key.startswith("10.") and "/" in key:
+        key = "doi:" + key
+    elif key.startswith("https://openalex.org/"):
+        key = key.rsplit("/", 1)[-1]
+    url = f"{API}/{key}"
+    params = {}
+    if settings.openalex_mailto:
+        params["mailto"] = settings.openalex_mailto
+    headers = {
+        "User-Agent": f"NOVAIQ/0.1 (mailto:{settings.openalex_mailto or 'anonymous@example.com'})"
+    }
+    resp = requests.get(url, params=params, headers=headers, timeout=30)
+    resp.raise_for_status()
+    paper = work_to_paper(resp.json())
+    if not paper:
+        raise ValueError(f"OpenAlex work not found: {work_id}")
+    return paper

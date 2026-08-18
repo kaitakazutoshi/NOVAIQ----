@@ -152,6 +152,8 @@ def generate_article(
     *,
     papers: Sequence[Paper] | None = None,
     deco_names: list[str] | None = None,
+    model: str | None = None,
+    extra_instructions: str = "",
 ) -> Article:
     """Call the OpenAI API and return a validated Article."""
     from openai import OpenAI
@@ -160,12 +162,16 @@ def generate_article(
     if not items or template is None:
         raise ValueError("papers and template are required")
 
-    client = OpenAI(api_key=settings.openai_api_key)
+    user = _build_user_prompt(items, template, deco_names)
+    if extra_instructions.strip():
+        user = user + "\n" + extra_instructions.strip()
+
+    client = OpenAI(api_key=settings.openai_api_key, timeout=180.0)
     resp = client.chat.completions.create(
-        model=settings.text_model,
+        model=(model or settings.text_model).strip(),
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": _build_user_prompt(items, template, deco_names)},
+            {"role": "user", "content": user},
         ],
         response_format={"type": "json_object"},
     )

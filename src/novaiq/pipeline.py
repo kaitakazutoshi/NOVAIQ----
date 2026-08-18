@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Callable, List, Optional
 
@@ -46,9 +46,12 @@ def run_once(
     apply_deco: bool = True,
     search_query: str | None = None,
     max_papers: int = 3,
+    text_model: str | None = None,
     log: Logger | None = None,
 ) -> RunResult:
     settings = settings or get_settings()
+    if text_model:
+        settings = replace(settings, text_model=text_model.strip())
     logs: List[str] = []
 
     def _log(msg: str) -> None:

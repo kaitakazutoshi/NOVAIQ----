@@ -28,6 +28,11 @@ def main() -> int:
     ap.add_argument("--no-dry-run", dest="dry_run", action="store_false")
     ap.add_argument("--query", default=None, help="override paper search query")
     ap.add_argument("--max-papers", type=int, default=3)
+    ap.add_argument(
+        "--model",
+        default=None,
+        help="text model override (e.g. gpt-5.6-luna / gpt-5.6-terra / gpt-5.6-sol)",
+    )
     ap.add_argument("--list", action="store_true", help="list templates and exit")
     args = ap.parse_args()
 
@@ -46,6 +51,7 @@ def main() -> int:
         apply_deco=not args.no_deco,
         search_query=args.query,
         max_papers=args.max_papers,
+        text_model=args.model,
         log=print,
     )
     print("\n--- RESULT ---")

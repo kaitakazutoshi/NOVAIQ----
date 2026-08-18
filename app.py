@@ -101,6 +101,11 @@ with tab_run:
             value=True,
             help="登録済みの装飾コードを本文に埋め込みます",
         )
+        text_model = st.text_input(
+            "文章モデル",
+            value=settings.text_model,
+            help="gpt-5.6-luna / gpt-5.6-terra / gpt-5.6-sol など。空なら設定の既定値。",
+        )
         dry_run = st.checkbox(
             "dry-run（WordPressに投稿せず生成物だけ確認）", value=True,
             help="OFFにすると実際に下書き(draft)を投稿します",
@@ -128,6 +133,7 @@ with tab_run:
                 dry_run=dry_run,
                 with_image=with_image,
                 apply_deco=apply_deco,
+                text_model=text_model.strip() or None,
                 log=_log,
             )
         st.session_state["last_result"] = res
